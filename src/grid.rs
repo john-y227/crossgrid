@@ -1,17 +1,19 @@
 use std::fmt;
 
-/// A single square in a crossword grid.
+/// A single square in a crossword grid. A white square carries an optional
+/// letter, so the same type represents both an empty layout and a filled
+/// puzzle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cell {
     Black,
-    White,
+    White(Option<char>),
 }
 
 /// A rectangular crossword grid: a fixed width/height array of cells.
 ///
-/// `Grid` only tracks which squares are black or white. It deliberately
-/// says nothing about letters, so every function that inspects a grid can
-/// be tested with plain ASCII patterns instead of a full puzzle.
+/// Structural functions (symmetry, numbering, slots) only care whether a
+/// cell is black or white, so they still work unchanged on a grid whose
+/// white cells happen to carry letters.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Grid {
     width: usize,
@@ -54,17 +56,23 @@ impl Grid {
         Ok(Grid { width, height, cells })
     }
 
-    /// Parses a text block into a grid. `#` marks a black square; any other
-    /// character on a line marks a white square. Blank lines are skipped
-    /// entirely rather than treated as zero-width rows, so trailing
-    /// newlines in a file don't turn into a parse error.
+    /// Parses a text block into a grid. `#` marks a black square; an ASCII
+    /// letter marks a filled white square holding that letter (case is
+    /// normalized to uppercase); any other character marks an empty white
+    /// square. Blank lines are skipped entirely rather than treated as
+    /// zero-width rows, so trailing newlines in a file don't turn into a
+    /// parse error.
     pub fn parse(text: &str) -> Result<Grid, GridError> {
         let rows: Vec<Vec<Cell>> = text
             .lines()
             .filter(|line| !line.is_empty())
             .map(|line| {
                 line.chars()
-                    .map(|c| if c == '#' { Cell::Black } else { Cell::White })
+                    .map(|c| match c {
+                        '#' => Cell::Black,
+                        c if c.is_ascii_alphabetic() => Cell::White(Some(c.to_ascii_uppercase())),
+                        _ => Cell::White(None),
+                    })
                     .collect()
             })
             .collect();
@@ -90,8 +98,27 @@ impl Grid {
         matches!(self.get(row, col), Some(Cell::Black))
     }
 
+    /// The letter filling a white cell, or `None` for a black cell or an
+    /// empty white cell.
+    pub fn letter(&self, row: usize, col: usize) -> Option<char> {
+        match self.get(row, col) {
+            Some(Cell::White(letter)) => letter,
+            _ => None,
+        }
+    }
+
     pub fn black_count(&self) -> usize {
         self.cells.iter().filter(|c| **c == Cell::Black).count()
+    }
+
+    /// Number of white cells that hold a letter.
+    pub fn filled_count(&self) -> usize {
+        self.cells.iter().filter(|c| matches!(c, Cell::White(Some(_)))).count()
+    }
+
+    /// Number of white cells, filled or not.
+    pub fn white_count(&self) -> usize {
+        self.cells.iter().filter(|c| matches!(c, Cell::White(_))).count()
     }
 
     /// Fraction of cells that are black, in `[0.0, 1.0]`.
@@ -147,6 +174,26 @@ mod tests {
         let grid = Grid::parse("#.\n..").unwrap();
         assert_eq!(grid.black_count(), 1);
         assert!((grid.black_ratio() - 0.25).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn parses_letters_into_white_cells() {
+        let grid = Grid::parse("CAT\n#a#\n...").unwrap();
+        assert_eq!(grid.letter(0, 0), Some('C'));
+        assert_eq!(grid.letter(0, 1), Some('A'));
+        assert_eq!(grid.letter(1, 1), Some('A'));
+        assert!(!grid.is_black(1, 1));
+        assert_eq!(grid.letter(2, 0), None);
+        assert_eq!(grid.letter(1, 0), None);
+        assert!(grid.is_black(1, 0));
+    }
+
+    #[test]
+    fn counts_filled_and_white_cells() {
+        let grid = Grid::parse("CA#\n..#").unwrap();
+        assert_eq!(grid.filled_count(), 2);
+        assert_eq!(grid.white_count(), 4);
+        assert_eq!(grid.black_count(), 2);
     }
 
     #[test]

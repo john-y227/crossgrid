@@ -41,6 +41,7 @@ fn print_report(grid: &Grid) {
 
     println!("size: {}x{}", grid.width(), grid.height());
     println!("black squares: {} ({:.1}%)", grid.black_count(), grid.black_ratio() * 100.0);
+    println!("filled cells: {} of {} white", grid.filled_count(), grid.white_count());
     println!("180-degree symmetry: {}", grid.has_180_symmetry());
     println!("numbered cells: {}", number_cells(grid).len());
     println!("slots: {across} across, {down} down");

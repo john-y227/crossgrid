@@ -2,10 +2,11 @@
 
 A small Rust library for reasoning about the *shape* of a crossword
 grid - where the black squares go, whether the layout has the usual
-180-degree rotational symmetry, how the cells get numbered, and what
-across/down word slots the grid produces. It does not know about letters,
-clues, or solving a puzzle. That keeps every public function pure: give it
-a grid, get back an answer, no state and no I/O involved.
+180-degree rotational symmetry, how the cells get numbered, what
+across/down word slots the grid produces, and what letters (if any) fill
+the white cells. It does not know about clues or solving a puzzle. That
+keeps every public function pure: give it a grid, get back an answer, no
+state and no I/O involved.
 
 Constructing a crossword grid by hand is fiddly - a single stray black
 square breaks the symmetry, or turns a 5-letter slot into a 3-letter one
@@ -16,14 +17,26 @@ it is well-formed, and only then move on to filling it with words.
 
 ## Grid format
 
-A grid is a block of text, one line per row. `#` is a black square;
-everything else on the line is a white square (so `.` is the usual
-choice, but any placeholder character works):
+A grid is a block of text, one line per row. `#` is a black square; an
+ASCII letter is a filled white square holding that letter; anything else
+is an empty white square (`.` is the usual choice, but any placeholder
+character works):
 
 ```
 #...#
 ..#..
 .....
+..#..
+#...#
+```
+
+A filled puzzle uses the same format, with letters in place of the
+placeholder character:
+
+```
+#CAT#
+..O..
+DOG..
 ..#..
 #...#
 ```
@@ -53,6 +66,7 @@ The `crossgrid` binary reads a grid file and prints a short report:
 $ cargo run -- puzzle.txt
 size: 5x5
 black squares: 5 (20.0%)
+filled cells: 0 of 20 white
 180-degree symmetry: true
 numbered cells: 8
 slots: 5 across, 5 down
@@ -70,6 +84,6 @@ slots: 5 across, 5 down
 
 ## Status
 
-Early skeleton: grid parsing, symmetry checking, numbering, and slot
-extraction are implemented and tested. Letter content, grid generation,
-and file formats beyond the plain-text one are not yet built.
+Early skeleton: grid parsing, symmetry checking, numbering, slot
+extraction, and letter content are implemented and tested. Grid
+generation and file formats beyond the plain-text one are not yet built.

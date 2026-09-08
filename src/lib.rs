@@ -1,7 +1,8 @@
 //! Data structures and pure functions for reasoning about the *shape* of a
 //! crossword grid: where the black squares sit, whether the layout numbers
-//! correctly, and what word slots it produces. This crate does not know
-//! about letters, clues, or solving a puzzle - it only describes the grid.
+//! correctly, what word slots it produces, and what letters (if any) fill
+//! the white cells. This crate does not know about clues or solving a
+//! puzzle - it only describes the grid.
 
 mod grid;
 mod numbering;
