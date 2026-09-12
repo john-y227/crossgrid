@@ -4,8 +4,10 @@
 //! the white cells. This crate does not know about clues or solving a
 //! puzzle - it only describes the grid.
 
+mod generator;
 mod grid;
 mod numbering;
 
+pub use generator::{generate, GenerateError};
 pub use grid::{Cell, Grid, GridError};
 pub use numbering::{number_cells, word_slots, Direction, Slot};

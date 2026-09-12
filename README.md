@@ -72,6 +72,23 @@ numbered cells: 8
 slots: 5 across, 5 down
 ```
 
+## Generating layouts
+
+`generate` builds a symmetric layout from a target size and black-square
+density instead of requiring one to be typed out by hand. It takes a seed
+so the result is reproducible - the same width, height, ratio, and seed
+always produce the same grid:
+
+```rust
+use crossgrid::generate;
+
+let grid = generate(15, 15, 0.16, 42).expect("valid parameters");
+assert!(grid.has_180_symmetry());
+```
+
+The generator never leaves behind a white cell that is boxed in on all
+four sides, since a cell like that could never be part of any word.
+
 ## Design
 
 - `Grid` is an immutable value built by `Grid::parse` or `Grid::from_rows`.
@@ -85,5 +102,6 @@ slots: 5 across, 5 down
 ## Status
 
 Early skeleton: grid parsing, symmetry checking, numbering, slot
-extraction, and letter content are implemented and tested. Grid
-generation and file formats beyond the plain-text one are not yet built.
+extraction, letter content, and symmetric layout generation are
+implemented and tested. File formats beyond the plain-text one are not
+yet built.
