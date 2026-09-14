@@ -89,6 +89,25 @@ assert!(grid.has_180_symmetry());
 The generator never leaves behind a white cell that is boxed in on all
 four sides, since a cell like that could never be part of any word.
 
+## Reading .puz files
+
+`read_puz` parses the bytes of an Across Lite `.puz` file into its solution
+grid, the solver's in-progress grid, and the title/author/copyright/notes/
+clue strings. It reads the base header, both boards, and the string table;
+it does not verify the file's checksums, and it does not understand the
+extra sections used for rebus squares, timers, or circled squares:
+
+```rust
+use crossgrid::read_puz;
+
+let bytes = std::fs::read("puzzle.puz").expect("could not read file");
+let puz = read_puz(&bytes).expect("valid .puz file");
+println!("{} - {} clues", puz.title, puz.clues.len());
+assert!(puz.solution.width() > 0);
+```
+
+Writing a `.puz` file back out is not built yet.
+
 ## Design
 
 - `Grid` is an immutable value built by `Grid::parse` or `Grid::from_rows`.
@@ -102,6 +121,6 @@ four sides, since a cell like that could never be part of any word.
 ## Status
 
 Early skeleton: grid parsing, symmetry checking, numbering, slot
-extraction, letter content, and symmetric layout generation are
-implemented and tested. File formats beyond the plain-text one are not
-yet built.
+extraction, letter content, symmetric layout generation, and reading
+`.puz` files are implemented and tested. Writing `.puz` files is not yet
+built.
